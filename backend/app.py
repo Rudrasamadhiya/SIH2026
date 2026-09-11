@@ -5,6 +5,9 @@ import asyncio
 from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
+import requests
+from firebase_manager import save_to_timeline
+from firebase_manager import get_patient_timeline
 
 from backend.asr import local_asr
 from backend.tts import generate_tts_chunk, wav_to_base64
@@ -60,3 +63,40 @@ async def process_audio(
         "llm": llm_data,
         "tts_base64_wav": wav_to_base64(tts_bytes),
     }
+
+EXTRACTOR_URL = "https://8000-01m16vfy8mpgpr7qn0fgxcjpqh.cloudspaces.litng.ai/extract"
+
+@app.post("/upload_prescription")
+async def upload_prescription(
+    file: UploadFile = File(...), 
+    abha_id: str = Form(...)
+):
+    """
+    Flow: Image -> Extractor API -> Firebase Timeline
+    """
+    # 1. Send image to the Medical Data Extractor
+    files = {"file": (file.filename, await file.read(), file.content_type)}
+    try:
+        response = requests.post(EXTRACTOR_URL, files=files, timeout=30)
+        response.raise_for_status()
+        extracted_data = response.json() # This is the MedicalRecord object
+    except Exception as e:
+        return {"error": f"Extraction failed: {str(e)}"}
+
+    # 2. Save extracted data to Firebase Timeline
+    success = save_to_timeline(abha_id, extracted_data)
+    
+    if success:
+        return {
+            "status": "success",
+            "message": "Record extracted and saved to timeline!",
+            "data": extracted_data
+        }
+    else:
+        return {"error": "Extraction worked, but saving to Firebase failed."}
+
+@app.get("/patient_timeline")
+async def get_timeline(abha_id: str):
+    """Retrieves the medical history for a specific ABHA ID from Firebase"""
+    timeline = get_patient_timeline(abha_id)
+    return {"abha_id": abha_id, "timeline": timeline}
