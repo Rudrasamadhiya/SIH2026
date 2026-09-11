@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Backgrounds */
+  --color-bg: #FAFAF9;
+  --color-surface: #FFFFFF;
+  --color-surface-elevated: #FFFFFF;
+  --color-surface-muted: #F4F5F6;
+
+  /* Borders */
+  --color-border: #E7E7E5;
+  --color-border-strong: #D4D6D9;
+
+  /* Primary — sophisticated medical teal */
+  --color-primary: #0F766E;
+  --color-primary-soft: #E6F5F3;
+  --color-primary-dark: #0B5852;
+
+  /* Secondary — deep navy/charcoal */
+  --color-secondary: #1E2A32;
+
+  /* Text */
+  --color-text-primary: #1B2126;
+  --color-text-secondary: #5B6670;
+  --color-text-muted: #8B939B;
+
+  /* Status */
+  --color-success: #1E8E5A;
+  --color-success-soft: #E7F6EE;
+  --color-warning: #B4740E;
+  --color-warning-soft: #FBF1DF;
+  --color-danger: #C22B2B;
+  --color-danger-soft: #FBEAEA;
+  --color-danger-dark: #941F1F;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection {
+  background-color: var(--color-primary-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.animation-delay-150 { animation-delay: 150ms; }
+.animation-delay-300 { animation-delay: 300ms; }
