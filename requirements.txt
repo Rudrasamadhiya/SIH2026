@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+requests
+python-multipart
+openai-whisper
+torch               # choose correct version for your CUDA; CPU will be slow
+gTTS
+pydub
