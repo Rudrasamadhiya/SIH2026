@@ -1,4 +1,5 @@
 # backend/app.py
+
 import json
 import base64
 import asyncio
@@ -70,7 +71,7 @@ EXTRACTOR_URL = "https://8000-01m16vfy8mpgpr7qn0fgxcjpqh.cloudspaces.litng.ai/ex
 
 @app.post("/upload_prescription")
 async def upload_prescription(
-    file: UploadFile = File(...), 
+    file: UploadFile = File(...),
     abha_id: str = Form(...)
 ):
     """

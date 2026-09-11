@@ -81,10 +81,6 @@ def generate_clinical_report(patient_info: dict, conversation_history: str, ai_s
     run.bold = True
     p.add_run(impression)
 
-    # --- Full Conversation Log (Appendix) ---
-    doc.add_heading('Appendix: Full Conversation Transcript', level=1)
-    doc.add_paragraph(conversation_history)
-
     # --- Save to Bytes ---
     buffer = BytesIO()
     doc.save(buffer)
