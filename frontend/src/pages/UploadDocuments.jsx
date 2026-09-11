@@ -20,6 +20,7 @@ export default function UploadDocuments({ abhaId, onBack, onComplete }) {
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState({}); // { [fileName]: 'uploading' | 'success' | 'error' }
+  const [extractedData, setExtractedData] = useState({}); // { [fileName]: extracted_data }
   const [dragActive, setDragActive] = useState(false);
 
   const handleDrag = useCallback((e) => {
@@ -65,28 +66,36 @@ export default function UploadDocuments({ abhaId, onBack, onComplete }) {
   const handleUploadAll = async () => {
     setUploading(true);
     const newStatus = {};
+    const newExtractedData = {};
 
     for (const file of files) {
       newStatus[file.name] = "uploading";
       setUploadStatus({ ...newStatus });
 
       try {
-        await uploadFile(file);
-        newStatus[file.name] = "success";
+        const result = await uploadFile(file);
+        
+        if (result.status === "success") {
+          newStatus[file.name] = "success";
+          newExtractedData[file.name] = result.data || {};
+        } else {
+          newStatus[file.name] = "error";
+        }
       } catch (error) {
         newStatus[file.name] = "error";
         console.error(`Failed to upload ${file.name}:`, error);
       }
 
       setUploadStatus({ ...newStatus });
+      setExtractedData({ ...newExtractedData });
     }
 
     setUploading(false);
 
-    // If all successful, redirect after a moment
+    // If all successful, redirect after viewing results
     const allSuccess = Object.values(newStatus).every((s) => s === "success");
     if (allSuccess) {
-      setTimeout(() => onComplete(), 2000);
+      setTimeout(() => onComplete(), 3000);
     }
   };
 
@@ -242,16 +251,87 @@ export default function UploadDocuments({ abhaId, onBack, onComplete }) {
           </div>
         )}
 
-        {/* Success Message */}
+        {/* Success Message with Extracted Data */}
         {Object.values(uploadStatus).some((s) => s === "success") && (
-          <div className="mt-6 rounded-xl bg-success-soft border border-success/20 p-4 flex items-start gap-3 animate-bounce-in">
-            <CheckCircle2 className="h-5 w-5 text-success shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium text-success">Upload Successful!</p>
-              <p className="text-sm text-text-secondary mt-1">
-                Your documents have been added to your medical timeline.
-              </p>
+          <div className="mt-6 space-y-4 animate-bounce-in">
+            <div className="rounded-xl bg-success-soft border border-success/20 p-4 flex items-start gap-3">
+              <CheckCircle2 className="h-5 w-5 text-success shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-medium text-success">Upload Successful!</p>
+                <p className="text-sm text-text-secondary mt-1">
+                  Your documents have been processed and added to your medical timeline.
+                </p>
+              </div>
             </div>
+
+            {/* Show Extracted Data */}
+            {Object.entries(extractedData).map(([fileName, data]) => (
+              data && Object.keys(data).length > 0 && (
+                <Card key={fileName} className="border-l-4 border-l-success">
+                  <div className="mb-3">
+                    <h4 className="font-semibold text-text-primary text-sm flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-success" />
+                      Extracted from: {fileName}
+                    </h4>
+                  </div>
+                  
+                  <div className="space-y-3 text-sm">
+                    {data.patient_name && (
+                      <div>
+                        <p className="text-xs font-semibold text-text-muted uppercase mb-1">Patient Name</p>
+                        <p className="text-text-primary">{data.patient_name}</p>
+                      </div>
+                    )}
+                    
+                    {data.medications && data.medications.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-text-muted uppercase mb-1">
+                          Medications ({data.medications.length})
+                        </p>
+                        <ul className="space-y-1">
+                          {data.medications.map((med, idx) => (
+                            <li key={idx} className="flex items-start gap-2">
+                              <span className="text-primary mt-0.5">•</span>
+                              <span className="text-text-primary">{med}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    {data.diagnoses && data.diagnoses.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-text-muted uppercase mb-1">
+                          Diagnoses ({data.diagnoses.length})
+                        </p>
+                        <ul className="space-y-1">
+                          {data.diagnoses.map((diag, idx) => (
+                            <li key={idx} className="flex items-start gap-2">
+                              <span className="text-primary mt-0.5">•</span>
+                              <span className="text-text-primary">{diag}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    {data.doctor_name && (
+                      <div>
+                        <p className="text-xs font-semibold text-text-muted uppercase mb-1">Prescribed By</p>
+                        <p className="text-text-primary">{data.doctor_name}</p>
+                      </div>
+                    )}
+                    
+                    {data.date && (
+                      <div>
+                        <p className="text-xs font-semibold text-text-muted uppercase mb-1">Date</p>
+                        <p className="text-text-primary">{data.date}</p>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              )
+            ))}
           </div>
         )}
       </main>
