@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 export default function Input({
   label,
@@ -6,8 +6,11 @@ export default function Input({
   hint,
   id,
   className = "",
+  onFocus,
+  onBlur,
   ...props
 }) {
+  const [focused, setFocused] = useState(false);
   const inputId = id || label?.toLowerCase().replace(/\s+/g, "-");
   return (
     <div className="w-full text-left">
@@ -18,13 +21,22 @@ export default function Input({
       )}
       <input
         id={inputId}
+        onFocus={(e) => {
+          setFocused(true);
+          onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setFocused(false);
+          onBlur?.(e);
+        }}
         className={[
           "w-full rounded-xl border bg-surface px-4 py-3.5 text-[16px] text-text-primary",
-          "placeholder:text-text-muted transition-colors duration-150",
-          "focus:outline-none focus:ring-2 focus:ring-primary/30",
+          "placeholder:text-text-muted transition-all duration-150",
+          "focus:outline-none focus:ring-4",
           error
-            ? "border-danger focus:border-danger"
-            : "border-border focus:border-primary",
+            ? "border-danger focus:border-danger focus:ring-danger/15"
+            : "border-border focus:border-primary focus:ring-primary/15",
+          focused ? "shadow-sm" : "",
           className,
         ].join(" ")}
         aria-invalid={!!error}
@@ -32,7 +44,7 @@ export default function Input({
         {...props}
       />
       {error && (
-        <p id={`${inputId}-error`} className="mt-1.5 text-sm text-danger">
+        <p id={`${inputId}-error`} className="mt-1.5 text-sm text-danger animate-fade-in">
           {error}
         </p>
       )}

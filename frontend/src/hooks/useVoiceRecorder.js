@@ -2,10 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * Encapsulates the exact same MediaRecorder behavior the original App.js
- * used (audio/webm blob), just organized as a reusable hook with elapsed
- * time tracking for the recording UI.
+ * used (audio/webm blob), organized as a reusable hook with elapsed time
+ * tracking for the recording UI. Also surfaces the raw MediaStream while
+ * recording (via onStream) so the UI can drive a real, audio-reactive
+ * waveform off the mic instead of a decorative animation.
  */
-export default function useVoiceRecorder({ onStop }) {
+export default function useVoiceRecorder({ onStop, onStream }) {
   const [recording, setRecording] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [permissionError, setPermissionError] = useState(null);
@@ -19,12 +21,15 @@ export default function useVoiceRecorder({ onStop }) {
     setPermissionError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      onStream?.(stream);
+
       mediaRecorderRef.current = new MediaRecorder(stream);
       chunksRef.current = [];
 
       mediaRecorderRef.current.ondataavailable = (e) => chunksRef.current.push(e.data);
       mediaRecorderRef.current.onstop = () => {
         stream.getTracks().forEach((track) => track.stop());
+        onStream?.(null);
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         onStop?.(blob);
       };
@@ -41,7 +46,7 @@ export default function useVoiceRecorder({ onStop }) {
         "We need microphone access to hear you. Please allow microphone permission and try again."
       );
     }
-  }, [onStop]);
+  }, [onStop, onStream]);
 
   const stop = useCallback(() => {
     setRecording(false);

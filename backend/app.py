@@ -2,18 +2,19 @@
 import json
 import base64
 import asyncio
-from fastapi import FastAPI, File, UploadFile, Form
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from typing import Optional
 import requests
+from io import BytesIO
 
-from backend.firebase_manager import save_to_timeline
-from backend.firebase_manager import get_patient_timeline
-
+from backend.firebase_manager import save_to_timeline, get_patient_timeline, save_consultation
 from backend.asr import local_asr
 from backend.tts import generate_tts_chunk, wav_to_base64
 from backend.lightning_chat import call_lightning
 from backend.prompt_template import PROMPT_TEMPLATE
+from backend.report_generator import generate_clinical_report
 
 app = FastAPI()
 
@@ -101,3 +102,55 @@ async def get_timeline(abha_id: str):
     """Retrieves the medical history for a specific ABHA ID from Firebase"""
     timeline = get_patient_timeline(abha_id)
     return {"abha_id": abha_id, "timeline": timeline}
+
+@app.post("/save_consultation")
+async def save_consultation_endpoint(
+    abha_id: str = Form(...),
+    consultation_data: str = Form(...)
+):
+    """Saves consultation data to Firebase"""
+    try:
+        data = json.loads(consultation_data)
+        success = save_consultation(abha_id, data)
+        if success:
+            return {"status": "success", "message": "Consultation saved"}
+        else:
+            return {"status": "error", "message": "Failed to save consultation"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@app.post("/generate_report")
+async def generate_report_endpoint(
+    abha_id: str = Form(...),
+    patient_info: str = Form(...),
+    conversation_history: str = Form(...),
+    ai_summary: str = Form(...)
+):
+    """Generates a clinical report as DOCX file"""
+    try:
+        patient_data = json.loads(patient_info)
+        summary_data = json.loads(ai_summary)
+        
+        report_bytes = generate_clinical_report(
+            patient_info=patient_data,
+            conversation_history=conversation_history,
+            ai_summary=summary_data
+        )
+        
+        return StreamingResponse(
+            BytesIO(report_bytes),
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={"Content-Disposition": f"attachment; filename=medical_report_{abha_id}.docx"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/verify_otp")
+async def verify_otp(abha_id: str = Form(...), otp: str = Form(...)):
+    """Verifies OTP for ABHA ID - Mock implementation for demo"""
+    # In production, this would verify with ABDM API
+    # For demo, accept any 6-digit OTP
+    if len(otp) == 6 and otp.isdigit():
+        return {"status": "success", "verified": True}
+    else:
+        return {"status": "error", "verified": False, "message": "Invalid OTP"}

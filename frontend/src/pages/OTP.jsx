@@ -3,6 +3,7 @@ import { ArrowLeft, CheckCircle2, ShieldCheck } from "lucide-react";
 import Logo from "../components/branding/Logo";
 import OTPInput from "../components/ui/OTPInput";
 import Button from "../components/ui/Button";
+import { verifyOTP } from "../lib/api";
 
 const OTP_LENGTH = 6;
 const RESEND_SECONDS = 30;
@@ -23,17 +24,26 @@ export default function OTP({ abhaId, otp, setOtp, onBack, onVerified }) {
     return () => clearTimeout(t);
   }, [status, onVerified]);
 
-  function handleVerify() {
+  async function handleVerify() {
     if (otp.length !== OTP_LENGTH) {
       setStatus("error");
       return;
     }
-    // NOTE: authentication is currently mocked on the backend (no real OTP
-    // verification exists), so this preserves that mock behavior with a
-    // brief, honest "verifying" state rather than pretending to call an
-    // endpoint that doesn't exist.
+    
     setStatus("verifying");
-    setTimeout(() => setStatus("success"), 600);
+    
+    try {
+      const result = await verifyOTP({ abhaId, otp });
+      
+      if (result.verified) {
+        setStatus("success");
+      } else {
+        setStatus("error");
+      }
+    } catch (err) {
+      console.error("OTP verification failed:", err);
+      setStatus("error");
+    }
   }
 
   const maskedId = abhaId.length > 4 ? `•••• ${abhaId.slice(-4)}` : abhaId;

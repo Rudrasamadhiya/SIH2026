@@ -75,9 +75,9 @@ export default function OTPInput({ length = 6, value, onChange, error, disabled 
           className={[
             "h-14 w-11 sm:h-16 sm:w-12 rounded-xl border text-center text-2xl font-semibold",
             "text-text-primary bg-surface transition-all duration-150",
-            "focus:outline-none focus:ring-2 focus:ring-primary/30",
-            error ? "border-danger" : "border-border focus:border-primary",
-            digit ? "border-primary/60" : "",
+            "focus:outline-none focus:ring-4 focus:ring-primary/15",
+            error ? "border-danger animate-fade-in" : "border-border focus:border-primary",
+            digit ? "border-primary/60 shadow-sm scale-[1.02]" : "",
           ].join(" ")}
         />
       ))}

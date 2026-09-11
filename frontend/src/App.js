@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 
 import Welcome from "./pages/Welcome";
 import Login from "./pages/Login";
@@ -7,26 +7,33 @@ import PatientIntro from "./pages/PatientIntro";
 import Consultation from "./pages/Consultation";
 import Summary from "./pages/Summary";
 import Report from "./pages/Report";
+import UploadDocuments from "./pages/UploadDocuments";
+import PatientHistory from "./pages/PatientHistory";
+import Dashboard from "./pages/Dashboard";
 
 import EmergencyModal from "./components/emergency/EmergencyModal";
 import useVoiceRecorder from "./hooks/useVoiceRecorder";
-import { processAudio } from "./lib/api";
+import { processAudio, saveConsultation } from "./lib/api";
+import { useLanguage } from "./context/LanguageContext";
 
 const SCREENS = {
   WELCOME: "WELCOME",
   LOGIN: "LOGIN",
   OTP: "OTP",
+  DASHBOARD: "DASHBOARD",
   INTRO: "INTRO",
   CONSULTATION: "CONSULTATION",
   SUMMARY: "SUMMARY",
   REPORT: "REPORT",
+  UPLOAD: "UPLOAD",
+  HISTORY: "HISTORY",
 };
 
 const DEFAULT_QUESTION = "Welcome! How can I help you today?";
 
 export default function App() {
   const [screen, setScreen] = useState(SCREENS.WELCOME);
-  const [language, setLanguage] = useState("en");
+  const { language, toggleLanguage, t } = useLanguage();
 
   // Identity — same fields the original app tracked.
   const [abhaId, setAbhaId] = useState("");
@@ -47,10 +54,6 @@ export default function App() {
   // Emergency
   const [emergencyOpen, setEmergencyOpen] = useState(false);
   const [emergencyFromAI, setEmergencyFromAI] = useState(false);
-
-  const toggleLanguage = useCallback(() => {
-    setLanguage((l) => (l === "en" ? "hi" : "en"));
-  }, []);
 
   const openManualEmergency = useCallback(() => {
     setEmergencyFromAI(false);
@@ -86,6 +89,22 @@ export default function App() {
         }
 
         if (data.llm?.status === "complete") {
+          // Save consultation before moving to summary
+          try {
+            await saveConsultation({
+              abhaId,
+              consultationData: {
+                timestamp: new Date().toISOString(),
+                transcript: data.transcript,
+                llm: data.llm,
+                history: history + `\nUser: ${data.transcript}\nAI: ${data.llm?.question ?? ""}`,
+                turns: [...turns, { transcript: data.transcript, question: data.llm?.question }]
+              }
+            });
+          } catch (saveErr) {
+            console.error("Failed to save consultation:", saveErr);
+            // Continue to summary even if save fails
+          }
           setScreen(SCREENS.SUMMARY);
         }
       } catch (err) {
@@ -94,7 +113,7 @@ export default function App() {
         setVoiceState("idle");
       }
     },
-    [abhaId, history]
+    [abhaId, history, turns]
   );
 
   const { recording, elapsedMs, permissionError, start, stop } = useVoiceRecorder({
@@ -161,7 +180,34 @@ export default function App() {
           otp={otp}
           setOtp={setOtp}
           onBack={() => setScreen(SCREENS.LOGIN)}
-          onVerified={() => setScreen(SCREENS.INTRO)}
+          onVerified={() => setScreen(SCREENS.DASHBOARD)}
+        />
+      )}
+
+      {screen === SCREENS.DASHBOARD && (
+        <Dashboard
+          abhaId={abhaId}
+          language={language}
+          onToggleLanguage={toggleLanguage}
+          onStartConsultation={() => setScreen(SCREENS.INTRO)}
+          onViewHistory={() => setScreen(SCREENS.HISTORY)}
+          onUploadDocuments={() => setScreen(SCREENS.UPLOAD)}
+          onEmergency={openManualEmergency}
+        />
+      )}
+
+      {screen === SCREENS.UPLOAD && (
+        <UploadDocuments
+          abhaId={abhaId}
+          onBack={() => setScreen(SCREENS.DASHBOARD)}
+          onComplete={() => setScreen(SCREENS.DASHBOARD)}
+        />
+      )}
+
+      {screen === SCREENS.HISTORY && (
+        <PatientHistory
+          abhaId={abhaId}
+          onBack={() => setScreen(SCREENS.DASHBOARD)}
         />
       )}
 
@@ -177,7 +223,7 @@ export default function App() {
         <Consultation
           abhaId={abhaId}
           turns={turns}
-          currentQuestion={llm?.question || DEFAULT_QUESTION}
+          currentQuestion={llm?.question || t("consultation.question")}
           language={language}
           onToggleLanguage={toggleLanguage}
           onEmergency={openManualEmergency}

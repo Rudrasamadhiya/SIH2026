@@ -25,7 +25,7 @@ export default function Toast({ message, tone = "info", onDismiss, duration = 40
       aria-live="polite"
       className={[
         "fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2.5",
-        "rounded-xl border px-4 py-3 text-sm font-medium shadow-elevated animate-fade-slide-up",
+        "rounded-xl border px-4 py-3 text-sm font-medium shadow-xl animate-bounce-in",
         TONES[tone],
       ].join(" ")}
     >

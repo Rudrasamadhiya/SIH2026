@@ -38,3 +38,98 @@ export async function processAudio({ blob, abhaId, history }) {
 
   return res.json();
 }
+
+/**
+ * Uploads a prescription/medical document
+ */
+export async function uploadPrescription({ file, abhaId }) {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("abha_id", abhaId);
+
+  const res = await fetch(`${API_BASE_URL}/upload_prescription`, {
+    method: "POST",
+    body: form,
+  });
+
+  if (!res.ok) {
+    throw new Error(`Upload failed: ${res.status}`);
+  }
+
+  return res.json();
+}
+
+/**
+ * Gets patient medical timeline
+ */
+export async function getPatientTimeline(abhaId) {
+  const res = await fetch(`${API_BASE_URL}/patient_timeline?abha_id=${abhaId}`);
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch timeline: ${res.status}`);
+  }
+
+  return res.json();
+}
+
+/**
+ * Saves consultation data to Firebase
+ */
+export async function saveConsultation({ abhaId, consultationData }) {
+  const form = new FormData();
+  form.append("abha_id", abhaId);
+  form.append("consultation_data", JSON.stringify(consultationData));
+
+  const res = await fetch(`${API_BASE_URL}/save_consultation`, {
+    method: "POST",
+    body: form,
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to save consultation: ${res.status}`);
+  }
+
+  return res.json();
+}
+
+/**
+ * Generates and downloads clinical report
+ */
+export async function generateReport({ abhaId, patientInfo, conversationHistory, aiSummary }) {
+  const form = new FormData();
+  form.append("abha_id", abhaId);
+  form.append("patient_info", JSON.stringify(patientInfo));
+  form.append("conversation_history", conversationHistory);
+  form.append("ai_summary", JSON.stringify(aiSummary));
+
+  const res = await fetch(`${API_BASE_URL}/generate_report`, {
+    method: "POST",
+    body: form,
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to generate report: ${res.status}`);
+  }
+
+  return res.blob();
+}
+
+/**
+ * Verifies OTP for ABHA ID
+ */
+export async function verifyOTP({ abhaId, otp }) {
+  const form = new FormData();
+  form.append("abha_id", abhaId);
+  form.append("otp", otp);
+
+  const res = await fetch(`${API_BASE_URL}/verify_otp`, {
+    method: "POST",
+    body: form,
+  });
+
+  if (!res.ok) {
+    throw new Error(`OTP verification failed: ${res.status}`);
+  }
+
+  return res.json();
+}

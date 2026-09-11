@@ -31,15 +31,15 @@ export default function Modal({ open, onClose, title, children, tone = "default"
         ].join(" ")}
         onClick={dismissible ? onClose : undefined}
       />
-      <div className="relative z-10 w-full max-w-md rounded-2xl bg-surface p-6 shadow-panel animate-fade-slide-up">
+      <div className="relative z-10 w-full max-w-md rounded-2xl bg-surface p-6 shadow-panel animate-bounce-in">
         <div className="mb-4 flex items-start justify-between gap-4">
-          <h2 className="text-lg font-bold text-text-primary">{title}</h2>
+          {title && <h2 className="text-lg font-bold text-text-primary">{title}</h2>}
           {dismissible && (
             <button
               ref={closeRef}
               onClick={onClose}
               aria-label="Close"
-              className="rounded-full p-1.5 text-text-muted transition-colors hover:bg-surface-muted hover:text-text-primary"
+              className="ml-auto rounded-full p-1.5 text-text-muted transition-colors hover:bg-surface-muted hover:text-text-primary active:scale-90"
             >
               <X className="h-5 w-5" />
             </button>

@@ -1,4 +1,5 @@
 import React from "react";
+import useRipple from "../../hooks/useRipple";
 
 export default function IconButton({
   icon: Icon,
@@ -6,8 +7,10 @@ export default function IconButton({
   variant = "ghost",
   active = false,
   className = "",
+  onClick,
   ...props
 }) {
+  const ripple = useRipple();
   const base =
     variant === "solid"
       ? "bg-primary text-white hover:bg-primary-dark"
@@ -19,10 +22,14 @@ export default function IconButton({
     <button
       aria-label={label}
       title={label}
+      onClick={(e) => {
+        ripple(e);
+        onClick?.(e);
+      }}
       className={[
-        "inline-flex items-center justify-center rounded-full",
+        "touch-ripple hover-lift inline-flex items-center justify-center rounded-full",
         "h-11 w-11 min-h-[44px] min-w-[44px]",
-        "transition-colors duration-150 ease-out active:scale-95",
+        "transition-colors duration-150 ease-out active:scale-90",
         base,
         className,
       ].join(" ")}

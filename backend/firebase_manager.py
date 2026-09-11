@@ -46,3 +46,28 @@ def get_patient_timeline(abha_id: str):
     except Exception as e:
         print(f"Firebase Error: {e}")
         return []
+
+def save_consultation(abha_id: str, consultation_data: dict):
+    """Saves consultation data to Firebase"""
+    try:
+        patient_ref = db.collection("patients").document(abha_id)
+        
+        # Ensure patient document exists
+        patient_ref.set({
+            "last_updated": datetime.now(),
+            "abha_id": abha_id
+        }, merge=True)
+
+        # Save consultation to health_timeline
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timeline_ref = patient_ref.collection("health_timeline").document(timestamp)
+        
+        timeline_ref.set({
+            "timestamp": datetime.now(),
+            "data": consultation_data,
+            "type": "AI Consultation"
+        })
+        return True
+    except Exception as e:
+        print(f"Firebase Error: {e}")
+        return False

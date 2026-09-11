@@ -49,7 +49,7 @@ export default function VoiceRecorder({ state, elapsedMs = 0, onStart, onStop })
           aria-label={state === "recording" ? "Stop recording" : "Start speaking"}
           className={[
             "relative z-10 flex h-20 w-20 items-center justify-center rounded-full",
-            "shadow-elevated transition-all duration-200 ease-out active:scale-95",
+            "shadow-xl transition-all duration-200 ease-out active:scale-95",
             "disabled:cursor-not-allowed disabled:opacity-50",
             state === "recording"
               ? "bg-danger text-white hover:bg-danger-dark"

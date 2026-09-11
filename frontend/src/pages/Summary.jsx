@@ -33,7 +33,7 @@ export default function Summary({ abhaId, turns, notes, onContinue }) {
 
         <div className="mt-8 w-full space-y-4 text-left animate-fade-slide-up">
           {turns.length > 0 && (
-            <section className="rounded-2xl border border-border bg-surface p-5 shadow-soft">
+            <section className="rounded-2xl border border-border bg-surface p-5 shadow-md">
               <h2 className="text-xs font-semibold uppercase tracking-wide text-text-muted">
                 Consultation Notes
               </h2>
@@ -49,7 +49,7 @@ export default function Summary({ abhaId, turns, notes, onContinue }) {
           )}
 
           {notes && (
-            <section className="rounded-2xl border border-border bg-surface p-5 shadow-soft">
+            <section className="rounded-2xl border border-border bg-surface p-5 shadow-md">
               <h2 className="text-xs font-semibold uppercase tracking-wide text-text-muted">
                 Clinical Observations
               </h2>

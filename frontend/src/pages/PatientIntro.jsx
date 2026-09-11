@@ -19,7 +19,7 @@ export default function PatientIntro({ language, onToggleLanguage, onContinue })
           there's no rush.
         </p>
 
-        <div className="mx-auto mt-8 max-w-xs space-y-3 rounded-2xl border border-border bg-surface p-5 text-left shadow-soft">
+        <div className="mx-auto mt-8 max-w-xs space-y-3 rounded-2xl border border-border bg-surface p-5 text-left shadow-md">
           <div className="flex items-center gap-3 text-sm text-text-secondary">
             <Clock className="h-4.5 w-4.5 shrink-0 text-primary" aria-hidden="true" />
             About 5–7 minutes
