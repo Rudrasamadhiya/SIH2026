@@ -17,7 +17,7 @@ STRICT RULES:
 2. BE CONCISE. One clear question at a time. No conversational filler.
 3. STAY ON TARGET. If the patient answers your previous question, your next question MUST logically follow up on that exact detail. Do not abruptly change the subject.
 4. EMERGENCY: If the patient mentions chest pain, difficulty breathing, unconsciousness, or severe bleeding, set "emergency": true immediately.
-5. If {turn_number} is 5, you MUST set "status": "complete".
+5. If user says "status complete" the stop asking questtions with "status:complete"
 
 REQUIRED JSON FORMAT (Strictly order the keys exactly as shown):
 {{

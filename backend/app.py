@@ -6,8 +6,9 @@ from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 import requests
-from firebase_manager import save_to_timeline
-from firebase_manager import get_patient_timeline
+
+from backend.firebase_manager import save_to_timeline
+from backend.firebase_manager import get_patient_timeline
 
 from backend.asr import local_asr
 from backend.tts import generate_tts_chunk, wav_to_base64
